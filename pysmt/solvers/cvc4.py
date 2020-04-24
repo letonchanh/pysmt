@@ -79,8 +79,8 @@ class CVC4Options(SolverOptions):
 class CVC4Solver(Solver, SmtLibBasicSolver, SmtLibIgnoreMixin):
 
     LOGICS = PYSMT_LOGICS -\
-             ARRAYS_CONST_LOGICS -\
-             set(l for l in PYSMT_LOGICS if not l.theory.linear)
+             ARRAYS_CONST_LOGICS
+             # set(l for l in PYSMT_LOGICS if not l.theory.linear)
 
     OptionsClass = CVC4Options
 
@@ -346,8 +346,8 @@ class CVC4Converter(Converter, DagWalker):
         return self.mkExpr(CVC4.EQUAL, args[0], args[1])
 
     def walk_times(self, formula, args, **kwargs):
-        if sum(1 for x in formula.args() if x.get_free_variables()) > 1:
-            raise NonLinearError(formula)
+        # if sum(1 for x in formula.args() if x.get_free_variables()) > 1:
+        #     raise NonLinearError(formula)
         res = args[0]
         for x in args[1:]:
             res = self.mkExpr(CVC4.MULT, res, x)
