@@ -131,9 +131,9 @@ class YicesOptions(SolverOptions):
 class YicesSolver(Solver, SmtLibBasicSolver, SmtLibIgnoreMixin):
 
     LOGICS = pysmt.logics.PYSMT_QF_LOGICS -\
-             pysmt.logics.ARRAYS_LOGICS -\
-             set(l for l in pysmt.logics.PYSMT_QF_LOGICS
-                 if not l.theory.linear or l.theory.strings)
+             pysmt.logics.ARRAYS_LOGICS
+             # set(l for l in pysmt.logics.PYSMT_QF_LOGICS
+             #     if not l.theory.linear or l.theory.strings)
     OptionsClass = YicesOptions
 
     def __init__(self, environment, logic, **options):
