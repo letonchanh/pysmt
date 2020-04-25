@@ -414,7 +414,6 @@ class YicesConverter(Converter, DagWalker):
                                                 old_vars, formula)
         return (new_formula, new_vars)
 
-
     def walk_plus(self, formula, args, **kwargs):
         res = yicespy.yices_sum(len(args), args)
         self._check_term_result(res)
@@ -445,6 +444,14 @@ class YicesConverter(Converter, DagWalker):
             self._check_term_result(res)
         return res
 
+    def walk_pow(self, formula, args, **kwargs):
+        td = self._get_type(formula.arg(0))
+        res = None
+        if td.is_int_type():
+            res = yicespy.yices_power(args[0], args[1])
+        self._check_term_result(res)
+        return res
+
     def walk_toreal(self, formula, args, **kwargs):
         return args[0]
 
@@ -456,7 +463,6 @@ class YicesConverter(Converter, DagWalker):
         res = yicespy.yices_application(decl, len(args), args)
         self._check_term_result(res)
         return res
-
 
     def walk_bv_constant(self, formula, **kwargs):
         width = formula.bv_width()
