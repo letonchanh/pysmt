@@ -317,6 +317,7 @@ class Z3Converter(Converter, DagWalker):
             z3.Z3_OP_GE: lambda args, expr: self.mgr.GE(args[0], args[1]),
             z3.Z3_OP_LT: lambda args, expr: self.mgr.LT(args[0], args[1]),
             z3.Z3_OP_LE: lambda args, expr: self.mgr.LE(args[0], args[1]),
+            z3.Z3_OP_DISTINCT : lambda args, expr: self.mgr.AllDifferent(args),
             z3.Z3_OP_SUB: lambda args, expr: self.mgr.Minus(args[0], args[1]),
             z3.Z3_OP_NOT: lambda args, expr: self.mgr.Not(args[0]),
             z3.Z3_OP_IMPLIES: lambda args, expr: self.mgr.Implies(args[0], args[1]),
@@ -490,16 +491,18 @@ class Z3Converter(Converter, DagWalker):
             raise NotImplementedError(
                 "Quantified back conversion is currently not supported")
 
+        decl = z3.Z3_get_app_decl(expr.ctx_ref(), expr.as_ast())
+        kind = z3.Z3_get_decl_kind(expr.ctx.ref(), decl)
+        
         assert not len(args) > 2 or \
             (z3.is_and(expr) or z3.is_or(expr) or
              z3.is_add(expr) or z3.is_mul(expr) or
-             (len(args) == 3 and (z3.is_ite(expr) or z3.is_array_store(expr)))),\
+             (len(args) == 3 and (z3.is_ite(expr) or z3.is_array_store(expr)))) or \
+            kind == z3.Z3_OP_DISTINCT, \
             "Unexpected n-ary term: %s" % expr
 
         res = None
         try:
-            decl = z3.Z3_get_app_decl(expr.ctx_ref(), expr.as_ast())
-            kind = z3.Z3_get_decl_kind(expr.ctx.ref(), decl)
             # Try to get the back-conversion function for the given Kind
             fun = self._back_fun[kind]
             return fun(args, expr)
@@ -557,14 +560,17 @@ class Z3Converter(Converter, DagWalker):
             return self.mgr.Function(fsymbol, args)
 
         # If we reach this point, we did not manage to translate the expression
-        raise ConvertExpressionError(message=("Unsupported expression: %s" %
-                                              (str(expr))),
+        raise ConvertExpressionError(message=("Unsupported expression: %s %s" %
+                                              (str(expr), expr.decl())),
                                      expression=expr)
 
     def _back_z3_eq(self, args, expr):
         if self._get_type(args[0]).is_bool_type():
             return self.mgr.Iff(args[0], args[1])
         return self.mgr.Equals(args[0], args[1])
+
+    def _back_z3_distinct(self, args, expr):
+        pass
 
     def _back_z3_uminus(self, args, expr):
         tp = self._get_type(args[0])

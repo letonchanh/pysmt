@@ -165,6 +165,7 @@ class Portfolio(IncrementalTrackingSolver):
                 assert type(res) is bool, type(res)
                 break
         _debug("Solver %s finished first saying %s", sname, res)
+        LOGGER.warning("Solver {} finished first, saying {}".format(sname, res))
         # Kill all processes, except for the "winner"
         for p in processes:
             if p.name == sname:
